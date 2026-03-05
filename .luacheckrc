@@ -12,4 +12,6 @@ unused = false
 shadowing = false
 ignore_inline_comments = true
 allow_defined_top = true
+max_line_length = 130
 cache = true
+-- ignore = { "631" }
