@@ -12,5 +12,4 @@ unused = false
 shadowing = false
 ignore_inline_comments = true
 allow_defined_top = true
-files["**.lua"] = true
 cache = true
