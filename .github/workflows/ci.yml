@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Luacheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install luacheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luarocks
+          sudo luarocks install luacheck
+
+      - name: Run luacheck
+        run: luacheck lua/ plugin/ --codes
+
+  test:
+    name: Tests (busted)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        # Test against both stable and nightly Neovim
+        neovim: [stable, nightly]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Neovim
+        uses: rhysd/action-setup-vim@v1
+        with:
+          neovim: true
+          version: ${{ matrix.neovim }}
+
+      - name: Install busted + luarocks deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y luarocks
+          sudo luarocks install busted
+
+      - name: Run tests
+        run: |
+          # Only run if tests directory exists
+          if [ -d "tests" ]; then
+            busted tests/
+          else
+            echo "No tests directory found — skipping"
+          fi

@@ -39,7 +39,7 @@ INSTALLATION                                           *chromatic-installation*
 
 With lazy.nvim: >lua
   {
-    "yourusername/chromatic.nvim",
+    "Yogesh012/chromatic.nvim",
     lazy    = false,
     priority = 999,      -- load before colorscheme plugins trigger
     opts = {
@@ -50,7 +50,7 @@ With lazy.nvim: >lua
 <
 
 With vim-plug: >vim
-  Plug 'yourusername/chromatic.nvim'
+  Plug 'Yogesh012/chromatic.nvim'
 <
   Then in your config: >lua
   require("chromatic").setup({ mode = "dark" })

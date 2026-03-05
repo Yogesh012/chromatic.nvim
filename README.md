@@ -27,7 +27,7 @@ chromatic.nvim picks a random theme from your installed colorscheme plugins ever
 
 ```lua
 {
-  "yourusername/chromatic.nvim",
+  "Yogesh012/chromatic.nvim",
   lazy     = false,
   priority = 999,
   opts = {

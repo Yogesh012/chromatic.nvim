@@ -1,0 +1,54 @@
+name: Bug Report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill in as much detail as possible.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Describe the bug
+      description: A clear description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. My setup() config is ...
+        2. I open nvim and ...
+        3. The error/behaviour I see is ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+    validations:
+      required: true
+
+  - type: textarea
+    id: config
+    attributes:
+      label: chromatic.nvim setup() config
+      description: Paste your chromatic.nvim opts here
+      render: lua
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: |
+        Run `:checkhealth chromatic` and paste the output, plus your Neovim version.
+      placeholder: |
+        Neovim version: 0.10.2
+        OS: macOS 14 / Ubuntu 22.04 / Windows 11
+        Plugin manager: lazy.nvim / vim-plug / etc.
+    validations:
+      required: true
