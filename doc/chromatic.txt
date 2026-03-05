@@ -1,0 +1,185 @@
+*chromatic.txt*  Random theme selector for Neovim          *chromatic* *chromatic.nvim*
+
+License:  MIT (see LICENSE)
+Version:  0.1.0
+
+==============================================================================
+CONTENTS                                                   *chromatic-contents*
+
+  1. Introduction .............. |chromatic-introduction|
+  2. Requirements .............. |chromatic-requirements|
+  3. Installation .............. |chromatic-installation|
+  4. Configuration ............. |chromatic-configuration|
+  5. Commands .................. |chromatic-commands|
+  6. Lua API ................... |chromatic-api|
+  7. Registry / extra themes ... |chromatic-registry|
+  8. FAQ ....................... |chromatic-faq|
+
+==============================================================================
+INTRODUCTION                                           *chromatic-introduction*
+
+chromatic.nvim randomly selects a colorscheme from your installed theme
+plugins every time Neovim opens. It supports:
+
+  • Dark / light mode filtering
+  • User-defined allowlists
+  • Session persistence (replay last theme)
+  • Legacy Vim theme compatibility (cterm → GUI conversion)
+  • Runtime settings that survive restarts (no config file editing)
+  • Zero startup cost: only the chosen theme plugin is loaded
+
+==============================================================================
+REQUIREMENTS                                           *chromatic-requirements*
+
+  • Neovim >= 0.9
+  • lazy.nvim (recommended, but the plugin degrades gracefully without it)
+
+==============================================================================
+INSTALLATION                                           *chromatic-installation*
+
+With lazy.nvim: >lua
+  {
+    "yourusername/chromatic.nvim",
+    lazy    = false,
+    priority = 999,      -- load before colorscheme plugins trigger
+    opts = {
+      mode    = "dark",
+      persist = true,
+    },
+  }
+<
+
+With vim-plug: >vim
+  Plug 'yourusername/chromatic.nvim'
+<
+  Then in your config: >lua
+  require("chromatic").setup({ mode = "dark" })
+<
+
+Note: chromatic.nvim works with any plugin manager. When used with lazy.nvim
+it can lazy-load individual theme plugins on demand. With other managers
+(vim-plug, packer, rocks.nvim) all plugins are already in the rtp at startup,
+so lazy-loading is skipped and detection uses the rtp directly.
+
+==============================================================================
+CONFIGURATION                                         *chromatic-configuration*
+
+Pass a table to |chromatic.setup()| or use lazy.nvim `opts`:
+
+  Key              Type        Default    Description ~
+  ─────────────────────────────────────────────────────────────────────────────
+  enabled          boolean     true       Master switch. false = apply fallback.
+  fallback         string      "default"  Colorscheme when no candidates found.
+  mode             str|nil     nil        "dark" | "light" | nil (any)
+  allowlist        string[]    {}         If non-empty, only these are candidates.
+  extra_themes     table[]     {}         Add themes to the built-in catalog.
+  persist          boolean     false      true = replay last theme on next open.
+  sync_lualine     boolean     true       Re-sync lualine after theme change.
+  notify           string      "notify"   "notify" | "echo" | "silent"
+                                          "notify" uses vim.notify (works with
+                                          plugins like nvim-notify / snacks).
+                                          "echo" prints a plain status-bar msg.
+                                          "silent" suppresses all output.
+
+Example: >lua
+  require("chromatic").setup({
+    mode      = "dark",
+    allowlist = { "tokyonight-storm", "gruvbox", "rose-pine" },
+    persist   = true,
+    notify    = "echo",
+  })
+<
+
+==============================================================================
+COMMANDS                                                   *chromatic-commands*
+
+:ChromaticNext                                               *:ChromaticNext*
+    Pick and apply a new random theme from the current candidate pool.
+
+:ChromaticMode [{mode}]                                      *:ChromaticMode*
+    Set the background mode filter. Persisted to state file.
+    {mode} is one of: dark | light | any
+    Tab-completion is supported.
+
+:ChromaticConfig                                             *:ChromaticConfig*
+    Open an interactive |vim.ui.select| picker to change settings:
+      • Mode (dark / light / any)
+      • Persist toggle
+      • Reset to defaults
+
+:ChromaticInfo                                               *:ChromaticInfo*
+    Print the current theme name and active settings.
+
+==============================================================================
+LUA API                                                          *chromatic-api*
+
+`require("chromatic").setup({opts})`                       *chromatic.setup()*
+    Configure the plugin. Safe to call multiple times; last call wins.
+
+`require("chromatic").next()`                               *chromatic.next()*
+    Pick and apply a new random theme (always ignores persist).
+
+`require("chromatic").current()`                         *chromatic.current()*
+    Return the name of the currently active colorscheme (string).
+
+`require("chromatic").list_available()`           *chromatic.list_available()*
+    Return the current filtered candidate list (table of registry entries).
+
+`require("chromatic").set_mode(mode)`                  *chromatic.set_mode()*
+    Set mode filter: "dark" | "light" | nil. Persisted immediately.
+
+`require("chromatic").set_persist(bool)`           *chromatic.set_persist()*
+    Toggle persist. Persisted immediately.
+
+==============================================================================
+REGISTRY / EXTRA THEMES                                    *chromatic-registry*
+
+chromatic.nvim ships with a built-in catalog of 30+ popular themes. You can
+add your own entries via `extra_themes`: >lua
+
+  require("chromatic").setup({
+    extra_themes = {
+      {
+        name       = "my-theme",
+        background = "dark",
+        plugin     = "my-theme.nvim",   -- lazy.nvim directory slug
+      },
+    },
+  })
+<
+Fields for each extra theme entry:
+  name       (required) — the string passed to :colorscheme
+  background (required) — "dark" or "light"
+  plugin     (optional) — lazy.nvim directory name; nil = built-in Vim theme
+  legacy     (optional) — set true to enable cterm→GUI compat shims
+
+==============================================================================
+FAQ                                                              *chromatic-faq*
+
+Q: A theme I installed doesn't show up. ~
+A: Make sure it's in the built-in catalog or add it via `extra_themes`.
+   The plugin can only pick from themes it knows about.
+
+Q: :colorscheme <Tab> doesn't show my lazy themes. ~
+A: chromatic.nvim automatically primes the runtimepath on VimEnter so all
+   installed theme plugins are discoverable. If it still doesn't show up,
+   check that the plugin is installed (`:Lazy`).
+
+Q: How do I set keymaps? ~
+A: chromatic.nvim deliberately doesn't claim any keymaps. Add your own: >lua
+     vim.keymap.set("n", "<leader>Tn", "<cmd>ChromaticNext<cr>")
+     vim.keymap.set("n", "<leader>Tc", "<cmd>ChromaticConfig<cr>")
+     vim.keymap.set("n", "<leader>Td", "<cmd>ChromaticMode dark<cr>")
+<
+Q: Where is the state file stored?                             *chromatic-state* ~
+A: `~/.local/share/nvim/chromatic_state.json`
+   This file stores your runtime settings: mode, persist, last_theme.
+   Delete it (or run :ChromaticConfig → Reset) to restore setup() defaults.
+   It is created automatically on first use.
+
+Q: When to use which `notify` option? ~
+A: "notify" uses vim.notify (works with notification plugins like nvim-notify).
+   Use "echo" if you want a plain status bar message, or "silent" to suppress all output.
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:

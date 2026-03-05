@@ -1,0 +1,15 @@
+# macOS
+.DS_Store
+
+# Lua
+*.o
+luac.out
+
+# Test artifacts
+.busted
+coverage/
+
+# Editor swap files
+*.swp
+*.swo
+*~
