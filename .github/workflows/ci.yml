@@ -20,14 +20,13 @@ jobs:
           sudo luarocks install luacheck
 
       - name: Run luacheck
-        run: luacheck lua/ plugin/ --codes
+        run: luacheck lua/ plugin/ tests/ --codes
 
   test:
     name: Tests (busted)
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        # Test against both stable and nightly Neovim
         neovim: [stable, nightly]
 
     steps:
@@ -39,17 +38,15 @@ jobs:
           neovim: true
           version: ${{ matrix.neovim }}
 
-      - name: Install busted + luarocks deps
+      - name: Install LuaJIT + busted
         run: |
           sudo apt-get update
-          sudo apt-get install -y luarocks
-          sudo luarocks install busted
+          sudo apt-get install -y luajit luarocks
+          # Install busted targeting Lua 5.1 (LuaJIT ABI) so nvim's embedded
+          # LuaJIT can require it via the paths added in tests/init.lua.
+          sudo luarocks --lua-version 5.1 install busted
 
       - name: Run tests
         run: |
-          # Only run if tests directory exists
-          if [ -d "tests" ]; then
-            busted tests/
-          else
-            echo "No tests directory found — skipping"
-          fi
+          nvim --headless -u tests/init.lua \
+            -c "lua _G.arg={[0]='busted'} require('busted.runner')()"
