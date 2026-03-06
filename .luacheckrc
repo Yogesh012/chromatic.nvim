@@ -11,11 +11,6 @@ max_line_length = 130
 -- Declare the top-level `vim` table so luacheck doesn't flag every vim.* call.
 globals = {
   "vim",
-  "use",
-  "describe",
-  "it",
-  "before_each", "after_each",
-  "require"
 }
 unused_args = false
 
@@ -41,4 +36,10 @@ ignore = {
 -- state; suppress the "defined but not used" noise for module-level vars.
 files["plugin/chromatic.lua"] = {
   ignore = { "211", "212" },
+}
+
+-- tests/: busted DSL globals are only valid inside spec files.
+files["tests/spec/*.lua"] = {
+  globals = { "describe", "it", "before_each", "after_each",
+              "assert", "pending", "spy", "stub", "mock" },
 }
